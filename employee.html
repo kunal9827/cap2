@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CabFlow - Employee Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>CabFlow 🚖</h2>
+            <ul>
+                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showSection('bookCab')">📍 Book a Cab</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div id="dashboardSection" class="section active-section">
+                <h1>Employee Dashboard</h1>
+                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Hello Kunal</p>
+                
+                <div class="card-container">
+                    <div class="card">
+                        <h3>Upcoming Trips</h3>
+                        <p id="upcomingTripsCount" style="color:#3b82f6;">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Completed Trips</h3>
+                        <p id="completedTripsCount" style="color:#16a34a;">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Cancelled Trips</h3>
+                        <p style="color:#dc2626;">1</p>
+                    </div>
+                </div>
+
+                <h2>Your Next Trip</h2>
+                <div id="upcomingTripDetails" class="trip-card">
+                    <!-- Populated by JS -->
+                    <p>No upcoming trips found.</p>
+                </div>
+                
+                <button onclick="showSection('bookCab')">Book a New Cab</button>
+            </div>
+
+            <div id="bookCabSection" class="section">
+                <h1>Book a Cab</h1>
+                <p style="color: #64748b; margin-bottom: 20px;">Please remember to book at least 9 hours in advance.</p>
+                <form id="bookCabForm">
+                    <div class="form-group">
+                        <label>Travel Date</label>
+                        <input type="date" id="travelDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pickup Time</label>
+                        <input type="time" id="pickupTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pickup Location</label>
+                        <input type="text" id="pickupLocation" required placeholder="Enter building/sector">
+                    </div>
+                    <div class="form-group">
+                        <label>Drop Location</label>
+                        <input type="text" id="dropLocation" required placeholder="Enter destination">
+                    </div>
+                    <div class="form-group">
+                        <label>Trip Type</label>
+                        <select id="tripType">
+                            <option value="One Way">One Way</option>
+                            <option value="Round Trip">Round Trip</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="bookCab()">Confirm Booking</button>
+                    <div id="bookMessage" class="message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const user = checkAuth('employee');
+        document.getElementById('welcomeMessage').innerText = 'Hello, ' + user.name;
+
+        function showSection(section) {
+            document.getElementById('dashboardSection').classList.remove('active-section');
+            document.getElementById('bookCabSection').classList.remove('active-section');
+            
+            if (section === 'dashboard') {
+                document.getElementById('dashboardSection').classList.add('active-section');
+                loadDashboardData();
+            } else {
+                document.getElementById('bookCabSection').classList.add('active-section');
+            }
+        }
+
+        function loadDashboardData() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            let upcoming = 0;
+            let completed = 0;
+            
+            const upcomingContainer = document.getElementById('upcomingTripDetails');
+            let firstUpcomingFound = false;
+
+            bookings.forEach(booking => {
+                if (booking.employeeName === user.name) {
+                    if (booking.status === 'Completed') {
+                        completed++;
+                    } else if (booking.status !== 'Cancelled') {
+                        upcoming++;
+                        if (!firstUpcomingFound) {
+                            upcomingContainer.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
+                                    <h3 style="margin:0; color:#3b82f6;">${booking.date} at ${booking.time}</h3>
+                                    <span style="background:#dbeafe; color:#1e40af; padding:5px 10px; border-radius:20px; font-size:12px; font-weight:bold;">${booking.status}</span>
+                                </div>
+                                <p><strong>Pickup:</strong> ${booking.pickup}</p>
+                                <p><strong>Drop:</strong> ${booking.drop}</p>
+                                <p><strong>Driver:</strong> ${booking.driver || 'Pending Assignment'}</p>
+                                <p><strong>Vehicle:</strong> ${booking.cab || 'Pending Assignment'}</p>
+                            `;
+                            firstUpcomingFound = true;
+                        }
+                    }
+                }
+            });
+
+            if (!firstUpcomingFound) {
+                upcomingContainer.innerHTML = '<p>No upcoming trips found. Book a cab to get started.</p>';
+            }
+
+            document.getElementById('upcomingTripsCount').innerText = upcoming;
+            document.getElementById('completedTripsCount').innerText = completed;
+        }
+
+        function bookCab() {
+            const travelDate = document.getElementById('travelDate').value;
+            const pickupTime = document.getElementById('pickupTime').value;
+            const pickupLocation = document.getElementById('pickupLocation').value;
+            const dropLocation = document.getElementById('dropLocation').value;
+            const messageEl = document.getElementById('bookMessage');
+
+            if (!travelDate || !pickupTime || !pickupLocation || !dropLocation) {
+                messageEl.innerText = 'Please fill all fields.';
+                messageEl.className = 'message';
+                return;
+            }
+
+            // Implement business rule: Cab must be booked at least 9 hours before pickup time.
+            const now = new Date();
+            const bookingDateTime = new Date(`${travelDate}T${pickupTime}`);
+            
+            const diffInHours = (bookingDateTime - now) / (1000 * 60 * 60);
+
+            if (diffInHours < 9) {
+                messageEl.innerText = 'Booking blocked. Please book at least 9 hours before your pickup time.';
+                messageEl.className = 'message';
+                return;
+            }
+
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const newBooking = {
+                id: Date.now(),
+                employeeName: user.name,
+                date: travelDate,
+                time: pickupTime,
+                pickup: pickupLocation,
+                drop: dropLocation,
+                status: 'Confirmed',
+                cab: 'Pending',
+                driver: 'Pending'
+            };
+            
+            // Assign first available cab for demo purposes
+            const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
+            if (cabs.length > 0) {
+                newBooking.cab = cabs[0].id;
+                newBooking.driver = 'Rahul'; // Hardcoded for demo
+            }
+
+            bookings.push(newBooking);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+
+            messageEl.innerText = 'Booking successful! Your trip is confirmed.';
+            messageEl.className = 'message success';
+            document.getElementById('bookCabForm').reset();
+            
+            loadDashboardData();
+        }
+
+        // Init
+        loadDashboardData();
+    </script>
+</body>
+</html>
