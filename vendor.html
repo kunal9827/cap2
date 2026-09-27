@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CabFlow - Vendor Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>CabFlow 🚖</h2>
+            <ul>
+                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showSection('addCab')">🚘 Add Cab</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div id="dashboardSection" class="section active-section">
+                <h1>Vendor Dashboard</h1>
+                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Welcome, ABC Travels</p>
+                
+                <div class="card-container">
+                    <div class="card">
+                        <h3>Total Cabs</h3>
+                        <p id="totalCabsCount">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Available Cabs</h3>
+                        <p id="availableCabsCount" style="color:#16a34a;">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Drivers</h3>
+                        <p>18</p>
+                    </div>
+                    <div class="card">
+                        <h3>Pending Bookings</h3>
+                        <p>4</p>
+                    </div>
+                </div>
+
+                <h2>My Fleet</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vehicle No.</th>
+                                <th>Model</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cabsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <button onclick="showSection('addCab')" style="margin-top: 10px;">+ Add New Cab</button>
+            </div>
+
+            <div id="addCabSection" class="section">
+                <h1>Add New Cab</h1>
+                <form id="addCabForm">
+                    <div class="form-group">
+                        <label>Vehicle Number</label>
+                        <input type="text" id="cabNumber" required placeholder="e.g. HR26AB1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Model</label>
+                        <input type="text" id="cabModel" required placeholder="e.g. Swift Dzire">
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <select id="cabType">
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Capacity</label>
+                        <input type="number" id="cabCapacity" required placeholder="e.g. 4">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="cabStatus">
+                            <option value="Available">Available</option>
+                            <option value="Assigned">Assigned</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="addCab()">Add Cab to Fleet</button>
+                    <div id="cabMessage" class="message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const user = checkAuth('vendor');
+        document.getElementById('welcomeMessage').innerText = 'Welcome, ' + user.name;
+
+        function showSection(section) {
+            document.getElementById('dashboardSection').classList.remove('active-section');
+            document.getElementById('addCabSection').classList.remove('active-section');
+            
+            if (section === 'dashboard') {
+                document.getElementById('dashboardSection').classList.add('active-section');
+                loadDashboardData();
+            } else {
+                document.getElementById('addCabSection').classList.add('active-section');
+            }
+        }
+
+        function loadDashboardData() {
+            const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
+            let total = 0;
+            let available = 0;
+            
+            const tbody = document.getElementById('cabsTableBody');
+            tbody.innerHTML = '';
+            
+            cabs.forEach(cab => {
+                if (cab.vendor === user.name) {
+                    total++;
+                    if (cab.status === 'Available') available++;
+                    
+                    let statusColor = cab.status === 'Available' ? '#16a34a' : '#ea580c';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${cab.id}</strong></td>
+                        <td>${cab.model}</td>
+                        <td>${cab.type}</td>
+                        <td style="color:${statusColor}; font-weight:bold;">${cab.status}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+            
+            document.getElementById('totalCabsCount').innerText = total;
+            document.getElementById('availableCabsCount').innerText = available;
+        }
+
+        function addCab() {
+            const id = document.getElementById('cabNumber').value;
+            const model = document.getElementById('cabModel').value;
+            const type = document.getElementById('cabType').value;
+            const capacity = document.getElementById('cabCapacity').value;
+            const status = document.getElementById('cabStatus').value;
+            const messageEl = document.getElementById('cabMessage');
+
+            if (!id || !model || !capacity) {
+                messageEl.innerText = 'Please fill all fields.';
+                messageEl.className = 'message';
+                return;
+            }
+
+            const cab = { id, model, type, capacity, status, vendor: user.name };
+            const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
+            cabs.push(cab);
+            localStorage.setItem('cabs', JSON.stringify(cabs));
+
+            messageEl.innerText = 'Cab successfully added to fleet.';
+            messageEl.className = 'message success';
+            document.getElementById('addCabForm').reset();
+            loadDashboardData();
+        }
+
+        // Init
+        loadDashboardData();
+    </script>
+</body>
+</html>
