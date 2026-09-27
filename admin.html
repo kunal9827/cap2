@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CabFlow - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>CabFlow 🚖</h2>
+            <ul>
+                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showSection('contracts')">📝 Create Contract</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div id="dashboardSection" class="section active-section">
+                <h1>Admin Dashboard</h1>
+                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Welcome, Admin</p>
+                
+                <div class="card-container">
+                    <div class="card">
+                        <h3>Total Employees</h3>
+                        <p>125</p>
+                    </div>
+                    <div class="card">
+                        <h3>Cab Vendors</h3>
+                        <p>8</p>
+                    </div>
+                    <div class="card">
+                        <h3>Active Cabs</h3>
+                        <p id="activeCabsCount">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Today's Bookings</h3>
+                        <p id="todayBookingsCount">0</p>
+                    </div>
+                </div>
+
+                <h2>Recent Bookings</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Pickup</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="contractsSection" class="section">
+                <h1>Create Contract</h1>
+                <form id="contractForm">
+                    <div class="form-group">
+                        <label>Vendor Name</label>
+                        <input type="text" id="vendorName" required placeholder="e.g. XYZ Travels">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Number of Cabs</label>
+                        <input type="number" id="numCabs" required placeholder="e.g. 10">
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <select id="vehicleType">
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rate Per KM (₹)</label>
+                        <input type="number" id="ratePerKm" required placeholder="e.g. 15">
+                    </div>
+                    <div class="form-group">
+                        <label>Maximum KM Per Day</label>
+                        <input type="number" id="maxKm" required placeholder="e.g. 150">
+                    </div>
+                    <button type="button" onclick="createContract()">Create Contract</button>
+                    <div id="contractMessage" class="message"></div>
+                </form>
+
+                <h2>Existing Contracts</h2>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vendor</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Cabs</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contractsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        checkAuth('admin');
+
+        function showSection(section) {
+            document.getElementById('dashboardSection').classList.remove('active-section');
+            document.getElementById('contractsSection').classList.remove('active-section');
+            
+            if (section === 'dashboard') {
+                document.getElementById('dashboardSection').classList.add('active-section');
+                loadDashboardData();
+            } else {
+                document.getElementById('contractsSection').classList.add('active-section');
+                loadContracts();
+            }
+        }
+
+        function loadDashboardData() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
+            
+            document.getElementById('activeCabsCount').innerText = cabs.length;
+            document.getElementById('todayBookingsCount').innerText = bookings.length;
+
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = '';
+            bookings.forEach(b => {
+                let statusBadge = b.status === 'Completed' ? '<span style="color:green;font-weight:bold;">'+b.status+'</span>' : b.status;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${b.employeeName}</td>
+                    <td>${b.pickup}</td>
+                    <td>${b.time}</td>
+                    <td>${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadContracts() {
+            const contracts = JSON.parse(localStorage.getItem('contracts')) || [];
+            const tbody = document.getElementById('contractsTableBody');
+            tbody.innerHTML = '';
+            contracts.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.vendorName}</td>
+                    <td>${c.startDate}</td>
+                    <td>${c.endDate}</td>
+                    <td>${c.numCabs}</td>
+                    <td>${c.vehicleType}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function createContract() {
+            const vendorName = document.getElementById('vendorName').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const numCabs = document.getElementById('numCabs').value;
+            const vehicleType = document.getElementById('vehicleType').value;
+            const ratePerKm = document.getElementById('ratePerKm').value;
+            const maxKm = document.getElementById('maxKm').value;
+            const messageEl = document.getElementById('contractMessage');
+
+            if (!vendorName || !startDate || !endDate || !numCabs || !ratePerKm || !maxKm) {
+                messageEl.innerText = 'Please fill all fields.';
+                messageEl.className = 'message';
+                return;
+            }
+
+            const contract = { vendorName, startDate, endDate, numCabs, vehicleType, ratePerKm, maxKm };
+            const contracts = JSON.parse(localStorage.getItem('contracts')) || [];
+            contracts.push(contract);
+            localStorage.setItem('contracts', JSON.stringify(contracts));
+
+            messageEl.innerText = 'Contract created successfully.';
+            messageEl.className = 'message success';
+            document.getElementById('contractForm').reset();
+            loadContracts();
+        }
+
+        // Init
+        loadDashboardData();
+    </script>
+</body>
+</html>
