@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CabFlow - Driver Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>CabFlow 🚖</h2>
+            <ul>
+                <li><a href="#">🛣️ My Trips</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h1>Driver Dashboard</h1>
+            <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Hello Rahul</p>
+            
+            <h2>Today's Assigned Trips</h2>
+            <div id="tripsContainer" style="max-width: 600px;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        const user = checkAuth('driver');
+        document.getElementById('welcomeMessage').innerText = 'Hello, ' + user.name;
+
+        function loadTrips() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const container = document.getElementById('tripsContainer');
+            container.innerHTML = '';
+            
+            let hasTrips = false;
+
+            bookings.forEach((booking, index) => {
+                if (booking.driver === user.name) {
+                    hasTrips = true;
+                    const tripCard = document.createElement('div');
+                    tripCard.className = 'trip-card';
+                    
+                    let actionButton = '';
+                    let statusColor = '#334155';
+
+                    if (booking.status === 'Confirmed' || booking.status === 'Assigned') {
+                        actionButton = `<button onclick="startTrip(${index})" style="width:100%;">Start Trip</button>`;
+                        statusColor = '#ea580c'; // Orange
+                    } else if (booking.status === 'Trip Started') {
+                        actionButton = `<button onclick="completeTrip(${index})" style="width:100%; background-color:#16a34a;">Complete Trip</button>`;
+                        statusColor = '#3b82f6'; // Blue
+                    } else if (booking.status === 'Completed') {
+                        statusColor = '#16a34a'; // Green
+                    }
+
+                    tripCard.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
+                            <h3 style="margin:0;">Time: ${booking.time || 'N/A'}</h3>
+                            <span style="color:${statusColor}; font-weight:bold; background-color:#f1f5f9; padding:5px 10px; border-radius:6px;">${booking.status}</span>
+                        </div>
+                        <p><strong>Passenger:</strong> ${booking.employeeName}</p>
+                        <p><strong>Pickup:</strong> ${booking.pickup}</p>
+                        <p><strong>Drop:</strong> ${booking.drop}</p>
+                        <p><strong>Vehicle:</strong> ${booking.cab}</p>
+                        <div style="margin-top: 20px;">
+                            ${actionButton}
+                        </div>
+                    `;
+                    container.appendChild(tripCard);
+                }
+            });
+
+            if (!hasTrips) {
+                container.innerHTML = '<div class="trip-card"><p>No trips assigned for today. Have a rest!</p></div>';
+            }
+        }
+
+        function startTrip(index) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            if (bookings[index]) {
+                bookings[index].status = 'Trip Started';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                loadTrips();
+            }
+        }
+
+        function completeTrip(index) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            if (bookings[index]) {
+                bookings[index].status = 'Completed';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                loadTrips();
+            }
+        }
+
+        // Init
+        loadTrips();
+    </script>
+</body>
+</html>
