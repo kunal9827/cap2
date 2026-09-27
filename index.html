@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CabFlow - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>CabFlow 🚖</h1>
+        <p>Corporate Cab Management</p>
+        
+        <form id="loginForm" onsubmit="event.preventDefault(); login();" style="box-shadow:none; border:none; padding:0; margin:0;">
+            <div class="form-group">
+                <label style="text-align:left;">Email</label>
+                <input type="email" id="email" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label style="text-align:left;">Password</label>
+                <input type="password" id="password" required placeholder="Enter your password">
+            </div>
+            <div class="form-group">
+                <label style="text-align:left;">Role</label>
+                <select id="role">
+                    <option value="admin">Admin</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="driver">Driver</option>
+                    <option value="employee">Employee</option>
+                </select>
+            </div>
+            <button type="submit">Login to Dashboard</button>
+            <div id="loginMessage" class="message"></div>
+        </form>
+
+        <div class="demo-credentials">
+            <h4>📌 Demo Logins</h4>
+            <p><strong>Admin:</strong> admin@cabflow.com / 123456</p>
+            <p><strong>Vendor:</strong> vendor@cabflow.com / 123456</p>
+            <p><strong>Driver:</strong> driver@cabflow.com / 123456</p>
+            <p><strong>Employee:</strong> employee@cabflow.com / 123456</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const message = document.getElementById('loginMessage');
+
+            if (!email || !password) {
+                message.innerText = 'Please fill all fields.';
+                return;
+            }
+
+            if (email === 'admin@cabflow.com' && password === '123456' && role === 'admin') {
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Admin' }));
+                window.location.href = 'admin.html';
+            } else if (email === 'vendor@cabflow.com' && password === '123456' && role === 'vendor') {
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'ABC Travels' }));
+                window.location.href = 'vendor.html';
+            } else if (email === 'driver@cabflow.com' && password === '123456' && role === 'driver') {
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Rahul' }));
+                window.location.href = 'driver.html';
+            } else if (email === 'employee@cabflow.com' && password === '123456' && role === 'employee') {
+                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Kunal' }));
+                window.location.href = 'employee.html';
+            } else {
+                message.innerText = 'Invalid email, password, or role.';
+            }
+        }
+    </script>
+</body>
+</html>
