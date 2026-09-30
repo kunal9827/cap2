@@ -40,7 +40,10 @@
                     </div>
                 </div>
 
-                <h2>Recent Bookings</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">Recent Bookings</h2>
+                    <input type="text" id="searchBookings" placeholder="🔍 Search employee or status..." onkeyup="filterBookings()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 250px;">
+                </div>
                 <div style="overflow-x:auto;">
                     <table>
                         <thead>
@@ -172,6 +175,17 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function filterBookings() {
+            const input = document.getElementById('searchBookings').value.toLowerCase();
+            const tbody = document.getElementById('bookingsTableBody');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].innerText.toLowerCase();
+                rows[i].style.display = text.includes(input) ? '' : 'none';
+            }
         }
 
         function createContract() {

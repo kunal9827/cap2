@@ -120,6 +120,7 @@
                                 <p><strong>Drop:</strong> ${booking.drop}</p>
                                 <p><strong>Driver:</strong> ${booking.driver || 'Pending Assignment'}</p>
                                 <p><strong>Vehicle:</strong> ${booking.cab || 'Pending Assignment'}</p>
+                                <button onclick="cancelTrip(${booking.id})" style="background-color:#ef4444; margin-top:15px; width:100%; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">Cancel Trip</button>
                             `;
                             firstUpcomingFound = true;
                         }
@@ -133,6 +134,18 @@
 
             document.getElementById('upcomingTripsCount').innerText = upcoming;
             document.getElementById('completedTripsCount').innerText = completed;
+        }
+
+        function cancelTrip(id) {
+            if(confirm('Are you sure you want to cancel this trip?')) {
+                const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                const index = bookings.findIndex(b => b.id === id);
+                if (index !== -1) {
+                    bookings[index].status = 'Cancelled';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    loadDashboardData();
+                }
+            }
         }
 
         function bookCab() {
