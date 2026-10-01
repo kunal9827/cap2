@@ -4,110 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Vendor Dashboard</title>
-<link rel="stylesheet" href="css/style.css"></head>
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h2>CabFlow 🚖</h2>
+            <div class="sidebar-header">
+                <h2>CabFlow 🚖</h2>
+            </div>
             <ul>
-                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
-                <li><a href="#" onclick="showSection('addCab')">🚘 Add Cab</a></li>
-                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+                <li><a href="#" id="link-dashboard" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" id="link-addCab" onclick="showSection('addCab')">🚘 Add Cab</a></li>
+                <li><a href="#" onclick="logout()" class="show-mobile-only" style="display:none;">🚪 Logout</a></li>
             </ul>
         </div>
-        <div class="main-content">
-            <div id="dashboardSection" class="section active-section">
-                <h1>Vendor Dashboard</h1>
-                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Welcome, ABC Travels</p>
-                
-                <div class="card-container">
-                    <div class="card">
-                        <h3>Total Cabs</h3>
-                        <p id="totalCabsCount">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Available Cabs</h3>
-                        <p id="availableCabsCount" style="color:#16a34a;">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Drivers</h3>
-                        <p>18</p>
-                    </div>
-                    <div class="card">
-                        <h3>Pending Bookings</h3>
-                        <p>4</p>
-                    </div>
+        
+        <div class="main-wrapper">
+            <div class="main-header">
+                <div class="page-title">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    Vendor Portal
                 </div>
-
-                <h2>My Fleet</h2>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Vehicle No.</th>
-                                <th>Model</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cabsTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <div class="user-info">
+                    <span class="user-name" id="headerUserName">Vendor</span>
+                    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
                 </div>
-                <button onclick="showSection('addCab')" style="margin-top: 10px;">+ Add New Cab</button>
             </div>
 
-            <div id="addCabSection" class="section">
-                <h1>Add New Cab</h1>
-                <form id="addCabForm">
-                    <div class="form-group">
-                        <label>Vehicle Number</label>
-                        <input type="text" id="cabNumber" required placeholder="e.g. HR26AB1234">
+            <div class="main-content">
+                <div id="dashboardSection" class="section active-section">
+                    <h1>Dashboard</h1>
+                    
+                    <div class="card-container">
+                        <div class="card">
+                            <h3>Total Cabs</h3>
+                            <p id="totalCabsCount">0</p>
+                            <div class="support-text">Registered in fleet</div>
+                        </div>
+                        <div class="card">
+                            <h3>Available Cabs</h3>
+                            <p id="availableCabsCount" style="color:#16a34a;">0</p>
+                            <div class="support-text">Ready for duty</div>
+                        </div>
+                        <div class="card">
+                            <h3>Drivers</h3>
+                            <p>18</p>
+                            <div class="support-text">Active drivers</div>
+                        </div>
+                        <div class="card">
+                            <h3>Pending Bookings</h3>
+                            <p>4</p>
+                            <div class="support-text">Awaiting action</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Vehicle Model</label>
-                        <input type="text" id="cabModel" required placeholder="e.g. Swift Dzire">
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h2 style="margin:0; font-size:18px;">My Fleet</h2>
+                        <button class="btn-primary btn-sm" onclick="showSection('addCab')">+ Add New Cab</button>
                     </div>
-                    <div class="form-group">
-                        <label>Vehicle Type</label>
-                        <select id="cabType">
-                            <option value="Sedan">Sedan</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Hatchback">Hatchback</option>
-                        </select>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vehicle No.</th>
+                                    <th>Model</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cabsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="form-group">
-                        <label>Capacity</label>
-                        <input type="number" id="cabCapacity" required placeholder="e.g. 4">
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="cabStatus">
-                            <option value="Available">Available</option>
-                            <option value="Assigned">Assigned</option>
-                        </select>
-                    </div>
-                    <button type="button" onclick="addCab()">Add Cab to Fleet</button>
-                    <div id="cabMessage" class="message"></div>
-                </form>
+                </div>
+
+                <div id="addCabSection" class="section">
+                    <h1>Add New Cab</h1>
+                    <form id="addCabForm">
+                        <div class="form-group">
+                            <label>Vehicle Number</label>
+                            <input type="text" id="cabNumber" required placeholder="e.g. HR26AB1234">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Model</label>
+                            <input type="text" id="cabModel" required placeholder="e.g. Swift Dzire">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Type</label>
+                            <select id="cabType">
+                                <option value="Sedan">Sedan</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Hatchback">Hatchback</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Capacity</label>
+                            <input type="number" id="cabCapacity" required placeholder="e.g. 4">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="cabStatus">
+                                <option value="Available">Available</option>
+                                <option value="Assigned">Assigned</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-primary" onclick="addCab()">Add Cab to Fleet</button>
+                        <div id="cabMessage" class="message"></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-<script src="js/script.js"></script>    <script>
+    <script src="js/script.js"></script>
+    <script>
         const user = checkAuth('vendor');
-        document.getElementById('welcomeMessage').innerText = 'Welcome, ' + user.name;
+        document.getElementById('headerUserName').innerText = user.name;
+
+        // Mobile logout display
+        if (window.innerWidth <= 768) {
+            document.querySelector('.show-mobile-only').style.display = 'block';
+        }
 
         function showSection(section) {
             document.getElementById('dashboardSection').classList.remove('active-section');
             document.getElementById('addCabSection').classList.remove('active-section');
             
+            document.getElementById('link-dashboard').classList.remove('active');
+            document.getElementById('link-addCab').classList.remove('active');
+            
+            if (window.innerWidth <= 768) toggleSidebar();
+            
             if (section === 'dashboard') {
                 document.getElementById('dashboardSection').classList.add('active-section');
+                document.getElementById('link-dashboard').classList.add('active');
                 loadDashboardData();
             } else {
                 document.getElementById('addCabSection').classList.add('active-section');
+                document.getElementById('link-addCab').classList.add('active');
             }
         }
 
@@ -124,14 +160,12 @@
                     total++;
                     if (cab.status === 'Available') available++;
                     
-                    let statusColor = cab.status === 'Available' ? '#16a34a' : '#ea580c';
-                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><strong>${cab.id}</strong></td>
                         <td>${cab.model}</td>
                         <td>${cab.type}</td>
-                        <td style="color:${statusColor}; font-weight:bold;">${cab.status}</td>
+                        <td>${getStatusBadge(cab.status)}</td>
                     `;
                     tbody.appendChild(tr);
                 }

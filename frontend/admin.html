@@ -4,135 +4,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Admin Dashboard</title>
-<link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h2>CabFlow 🚖</h2>
+            <div class="sidebar-header">
+                <h2>CabFlow 🚖</h2>
+            </div>
             <ul>
-                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
-                <li><a href="#" onclick="showSection('contracts')">📝 Create Contract</a></li>
-                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+                <li><a href="#" id="link-dashboard" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" id="link-contracts" onclick="showSection('contracts')">📝 Create Contract</a></li>
+                <li><a href="#" onclick="logout()" class="show-mobile-only" style="display:none;">🚪 Logout</a></li>
             </ul>
         </div>
-        <div class="main-content">
-            <div id="dashboardSection" class="section active-section">
-                <h1>Admin Dashboard</h1>
-                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Welcome, Admin</p>
-                
-                <div class="card-container">
-                    <div class="card">
-                        <h3>Total Employees</h3>
-                        <p>125</p>
-                    </div>
-                    <div class="card">
-                        <h3>Cab Vendors</h3>
-                        <p>8</p>
-                    </div>
-                    <div class="card">
-                        <h3>Active Cabs</h3>
-                        <p id="activeCabsCount">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Today's Bookings</h3>
-                        <p id="todayBookingsCount">0</p>
-                    </div>
+        
+        <div class="main-wrapper">
+            <div class="main-header">
+                <div class="page-title">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    Admin Portal
                 </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="margin: 0;">Recent Bookings</h2>
-                    <input type="text" id="searchBookings" placeholder="🔍 Search employee or status..." onkeyup="filterBookings()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 250px;">
-                </div>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Employee</th>
-                                <th>Pickup</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingsTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                <div class="user-info">
+                    <span class="user-name" id="headerUserName">Admin</span>
+                    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
                 </div>
             </div>
 
-            <div id="contractsSection" class="section">
-                <h1>Create Contract</h1>
-                <form id="contractForm">
-                    <div class="form-group">
-                        <label>Vendor Name</label>
-                        <input type="text" id="vendorName" required placeholder="e.g. XYZ Travels">
+            <div class="main-content">
+                <div id="dashboardSection" class="section active-section">
+                    <h1>Dashboard</h1>
+                    
+                    <div class="card-container">
+                        <div class="card">
+                            <h3>Total Employees</h3>
+                            <p>125</p>
+                            <div class="support-text">Registered users</div>
+                        </div>
+                        <div class="card">
+                            <h3>Cab Vendors</h3>
+                            <p>8</p>
+                            <div class="support-text">Active partners</div>
+                        </div>
+                        <div class="card">
+                            <h3>Active Cabs</h3>
+                            <p id="activeCabsCount">0</p>
+                            <div class="support-text">Currently in fleet</div>
+                        </div>
+                        <div class="card">
+                            <h3>Today's Bookings</h3>
+                            <p id="todayBookingsCount">0</p>
+                            <div class="support-text">Pending and completed</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Start Date</label>
-                        <input type="date" id="startDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>End Date</label>
-                        <input type="date" id="endDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Number of Cabs</label>
-                        <input type="number" id="numCabs" required placeholder="e.g. 10">
-                    </div>
-                    <div class="form-group">
-                        <label>Vehicle Type</label>
-                        <select id="vehicleType">
-                            <option value="Sedan">Sedan</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Hatchback">Hatchback</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Rate Per KM (₹)</label>
-                        <input type="number" id="ratePerKm" required placeholder="e.g. 15">
-                    </div>
-                    <div class="form-group">
-                        <label>Maximum KM Per Day</label>
-                        <input type="number" id="maxKm" required placeholder="e.g. 150">
-                    </div>
-                    <button type="button" onclick="createContract()">Create Contract</button>
-                    <div id="contractMessage" class="message"></div>
-                </form>
 
-                <h2>Existing Contracts</h2>
-                <div style="overflow-x:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Vendor</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Cabs</th>
-                                <th>Type</th>
-                            </tr>
-                        </thead>
-                        <tbody id="contractsTableBody">
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <h2 style="margin: 0; font-size: 18px;">Recent Bookings</h2>
+                        <input type="text" id="searchBookings" placeholder="🔍 Search employee or status..." onkeyup="filterBookings()" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #cbd5e1; width: 250px;">
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Pickup</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="contractsSection" class="section">
+                    <h1>Create Contract</h1>
+                    <form id="contractForm">
+                        <div class="form-group">
+                            <label>Vendor Name</label>
+                            <input type="text" id="vendorName" required placeholder="e.g. XYZ Travels">
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" id="endDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Cabs</label>
+                            <input type="number" id="numCabs" required placeholder="e.g. 10">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Type</label>
+                            <select id="vehicleType">
+                                <option value="Sedan">Sedan</option>
+                                <option value="SUV">SUV</option>
+                                <option value="Hatchback">Hatchback</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rate Per KM (₹)</label>
+                            <input type="number" id="ratePerKm" required placeholder="e.g. 15">
+                        </div>
+                        <div class="form-group">
+                            <label>Maximum KM Per Day</label>
+                            <input type="number" id="maxKm" required placeholder="e.g. 150">
+                        </div>
+                        <button type="button" class="btn-primary" onclick="createContract()">Create Contract</button>
+                        <div id="contractMessage" class="message"></div>
+                    </form>
+
+                    <h2 style="font-size: 18px; margin-top: 30px;">Existing Contracts</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vendor</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Cabs</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractsTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-<script src="js/script.js"></script>    <script>
-        checkAuth('admin');
+    <script src="js/script.js"></script>
+    <script>
+        const user = checkAuth('admin');
+        document.getElementById('headerUserName').innerText = user.name;
+
+        // Mobile logout display
+        if (window.innerWidth <= 768) {
+            document.querySelector('.show-mobile-only').style.display = 'block';
+        }
 
         function showSection(section) {
             document.getElementById('dashboardSection').classList.remove('active-section');
             document.getElementById('contractsSection').classList.remove('active-section');
             
+            document.getElementById('link-dashboard').classList.remove('active');
+            document.getElementById('link-contracts').classList.remove('active');
+            
+            if (window.innerWidth <= 768) toggleSidebar(); // auto close on mobile
+            
             if (section === 'dashboard') {
                 document.getElementById('dashboardSection').classList.add('active-section');
+                document.getElementById('link-dashboard').classList.add('active');
                 loadDashboardData();
             } else {
                 document.getElementById('contractsSection').classList.add('active-section');
+                document.getElementById('link-contracts').classList.add('active');
                 loadContracts();
             }
         }
@@ -147,13 +181,12 @@
             const tbody = document.getElementById('bookingsTableBody');
             tbody.innerHTML = '';
             bookings.forEach(b => {
-                let statusBadge = b.status === 'Completed' ? '<span style="color:green;font-weight:bold;">'+b.status+'</span>' : b.status;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${b.employeeName}</td>
                     <td>${b.pickup}</td>
                     <td>${b.time}</td>
-                    <td>${statusBadge}</td>
+                    <td>${getStatusBadge(b.status)}</td>
                 `;
                 tbody.appendChild(tr);
             });

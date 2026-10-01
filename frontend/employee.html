@@ -4,76 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Employee Dashboard</title>
-<link rel="stylesheet" href="css/style.css"></head>
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h2>CabFlow 🚖</h2>
+            <div class="sidebar-header">
+                <h2>CabFlow 🚖</h2>
+            </div>
             <ul>
-                <li><a href="#" onclick="showSection('dashboard')">📊 Dashboard</a></li>
-                <li><a href="#" onclick="showSection('bookCab')">📍 Book a Cab</a></li>
-                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+                <li><a href="#" id="link-dashboard" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" id="link-bookCab" onclick="showSection('bookCab')">📍 Book a Cab</a></li>
+                <li><a href="#" onclick="logout()" class="show-mobile-only" style="display:none;">🚪 Logout</a></li>
             </ul>
         </div>
-        <div class="main-content">
-            <div id="dashboardSection" class="section active-section">
-                <h1>Employee Dashboard</h1>
-                <p id="welcomeMessage" style="color: #64748b; font-size: 18px; margin-bottom: 30px;">Hello Kunal</p>
-                
-                <div class="card-container">
-                    <div class="card">
-                        <h3>Upcoming Trips</h3>
-                        <p id="upcomingTripsCount" style="color:#3b82f6;">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Completed Trips</h3>
-                        <p id="completedTripsCount" style="color:#16a34a;">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Cancelled Trips</h3>
-                        <p style="color:#dc2626;">1</p>
-                    </div>
+        
+        <div class="main-wrapper">
+            <div class="main-header">
+                <div class="page-title">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    Employee Portal
                 </div>
-
-                <h2>Your Next Trip</h2>
-                <div id="upcomingTripDetails" class="trip-card">
-                    <!-- Populated by JS -->
-                    <p>No upcoming trips found.</p>
+                <div class="user-info">
+                    <span class="user-name" id="headerUserName">Employee</span>
+                    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
                 </div>
-                
-                <button onclick="showSection('bookCab')">Book a New Cab</button>
             </div>
 
-            <div id="bookCabSection" class="section">
-                <h1>Book a Cab</h1>
-                <p style="color: #64748b; margin-bottom: 20px;">Please remember to book at least 9 hours in advance.</p>
-                <form id="bookCabForm">
-                    <div class="form-group">
-                        <label>Travel Date</label>
-                        <input type="date" id="travelDate" required>
+            <div class="main-content">
+                <div id="dashboardSection" class="section active-section">
+                    <h1>Dashboard</h1>
+                    
+                    <div class="card-container">
+                        <div class="card">
+                            <h3>Upcoming Trips</h3>
+                            <p id="upcomingTripsCount" style="color:#3b82f6;">0</p>
+                            <div class="support-text">Scheduled rides</div>
+                        </div>
+                        <div class="card">
+                            <h3>Completed Trips</h3>
+                            <p id="completedTripsCount" style="color:#16a34a;">0</p>
+                            <div class="support-text">Past rides</div>
+                        </div>
+                        <div class="card">
+                            <h3>Cancelled Trips</h3>
+                            <p style="color:#dc2626;">1</p>
+                            <div class="support-text">Cancelled by you</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Pickup Time</label>
-                        <input type="time" id="pickupTime" required>
+
+                    <h2 style="font-size: 18px;">Your Next Trip</h2>
+                    <div id="upcomingTripDetails">
+                        <!-- Populated by JS -->
+                        <div class="trip-card">
+                            <p>No upcoming trips found.</p>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Pickup Location</label>
-                        <input type="text" id="pickupLocation" required placeholder="Enter building/sector">
-                    </div>
-                    <div class="form-group">
-                        <label>Drop Location</label>
-                        <input type="text" id="dropLocation" required placeholder="Enter destination">
-                    </div>
-                    <div class="form-group">
-                        <label>Trip Type</label>
-                        <select id="tripType">
-                            <option value="One Way">One Way</option>
-                            <option value="Round Trip">Round Trip</option>
-                        </select>
-                    </div>
-                    <button type="button" onclick="bookCab()">Confirm Booking</button>
-                    <div id="bookMessage" class="message"></div>
-                </form>
+                    
+                    <button class="btn-primary" onclick="showSection('bookCab')" style="margin-top: 10px;">Book a New Cab</button>
+                </div>
+
+                <div id="bookCabSection" class="section">
+                    <h1>Book a Cab</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Please remember to book at least 9 hours in advance.</p>
+                    <form id="bookCabForm">
+                        <div class="form-group">
+                            <label>Travel Date</label>
+                            <input type="date" id="travelDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Pickup Time</label>
+                            <input type="time" id="pickupTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Pickup Location</label>
+                            <input type="text" id="pickupLocation" required placeholder="Enter building/sector">
+                        </div>
+                        <div class="form-group">
+                            <label>Drop Location</label>
+                            <input type="text" id="dropLocation" required placeholder="Enter destination">
+                        </div>
+                        <div class="form-group">
+                            <label>Trip Type</label>
+                            <select id="tripType">
+                                <option value="One Way">One Way</option>
+                                <option value="Round Trip">Round Trip</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-primary" onclick="bookCab()">Confirm Booking</button>
+                        <div id="bookMessage" class="message"></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -81,17 +102,29 @@
     <script src="js/script.js"></script>
     <script>
         const user = checkAuth('employee');
-        document.getElementById('welcomeMessage').innerText = 'Hello, ' + user.name;
+        document.getElementById('headerUserName').innerText = user.name;
+
+        // Mobile logout display
+        if (window.innerWidth <= 768) {
+            document.querySelector('.show-mobile-only').style.display = 'block';
+        }
 
         function showSection(section) {
             document.getElementById('dashboardSection').classList.remove('active-section');
             document.getElementById('bookCabSection').classList.remove('active-section');
             
+            document.getElementById('link-dashboard').classList.remove('active');
+            document.getElementById('link-bookCab').classList.remove('active');
+            
+            if (window.innerWidth <= 768) toggleSidebar();
+            
             if (section === 'dashboard') {
                 document.getElementById('dashboardSection').classList.add('active-section');
+                document.getElementById('link-dashboard').classList.add('active');
                 loadDashboardData();
             } else {
                 document.getElementById('bookCabSection').classList.add('active-section');
+                document.getElementById('link-bookCab').classList.add('active');
             }
         }
 
@@ -111,15 +144,17 @@
                         upcoming++;
                         if (!firstUpcomingFound) {
                             upcomingContainer.innerHTML = `
-                                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
-                                    <h3 style="margin:0; color:#3b82f6;">${booking.date} at ${booking.time}</h3>
-                                    <span style="background:#dbeafe; color:#1e40af; padding:5px 10px; border-radius:20px; font-size:12px; font-weight:bold;">${booking.status}</span>
+                                <div class="trip-card">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:10px;">
+                                        <h3 style="margin:0; color:#3b82f6;">${booking.date} at ${booking.time}</h3>
+                                        ${getStatusBadge(booking.status)}
+                                    </div>
+                                    <p><strong>Pickup:</strong> ${booking.pickup}</p>
+                                    <p><strong>Drop:</strong> ${booking.drop}</p>
+                                    <p><strong>Driver:</strong> ${booking.driver || 'Pending Assignment'}</p>
+                                    <p><strong>Vehicle:</strong> ${booking.cab || 'Pending Assignment'}</p>
+                                    <button class="btn-danger" onclick="cancelTrip(${booking.id})" style="margin-top:15px; width:100%;">Cancel Trip</button>
                                 </div>
-                                <p><strong>Pickup:</strong> ${booking.pickup}</p>
-                                <p><strong>Drop:</strong> ${booking.drop}</p>
-                                <p><strong>Driver:</strong> ${booking.driver || 'Pending Assignment'}</p>
-                                <p><strong>Vehicle:</strong> ${booking.cab || 'Pending Assignment'}</p>
-                                <button onclick="cancelTrip(${booking.id})" style="background-color:#ef4444; margin-top:15px; width:100%; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);">Cancel Trip</button>
                             `;
                             firstUpcomingFound = true;
                         }
@@ -128,7 +163,7 @@
             });
 
             if (!firstUpcomingFound) {
-                upcomingContainer.innerHTML = '<p>No upcoming trips found. Book a cab to get started.</p>';
+                upcomingContainer.innerHTML = '<div class="trip-card"><p>No upcoming trips found. Book a cab to get started.</p></div>';
             }
 
             document.getElementById('upcomingTripsCount').innerText = upcoming;

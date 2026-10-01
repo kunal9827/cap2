@@ -2,10 +2,10 @@
 function initData() {
     if (!localStorage.getItem('users')) {
         const users = [
-            { email: 'admin@cabflow.com', password: '123', role: 'admin', name: 'Admin' },
-            { email: 'vendor@cabflow.com', password: '123', role: 'vendor', name: 'ABC Travels' },
-            { email: 'driver@cabflow.com', password: '123', role: 'driver', name: 'Rahul' },
-            { email: 'employee@cabflow.com', password: '123', role: 'employee', name: 'Kunal' }
+            { email: 'admin@cabflow.com', password: '123456', role: 'admin', name: 'Admin' },
+            { email: 'vendor@cabflow.com', password: '123456', role: 'vendor', name: 'ABC Travels' },
+            { email: 'driver@cabflow.com', password: '123456', role: 'driver', name: 'Rahul' },
+            { email: 'employee@cabflow.com', password: '123456', role: 'employee', name: 'Kunal' }
         ];
         localStorage.setItem('users', JSON.stringify(users));
     }
@@ -36,4 +36,23 @@ function checkAuth(role) {
         window.location.href = 'index.html';
     }
     return user;
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('show');
+    }
+}
+
+function getStatusBadge(status) {
+    const s = status.toLowerCase();
+    let badgeClass = 'badge-pending';
+    if (s.includes('confirm')) badgeClass = 'badge-confirmed';
+    else if (s.includes('assign')) badgeClass = 'badge-assigned';
+    else if (s.includes('start')) badgeClass = 'badge-started';
+    else if (s.includes('complete')) badgeClass = 'badge-completed';
+    else if (s.includes('cancel')) badgeClass = 'badge-cancelled';
+    
+    return `<span class="badge ${badgeClass}">${status}</span>`;
 }
