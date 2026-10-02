@@ -44,7 +44,7 @@
 
     <script src="js/script.js"></script>
     <script>
-        function login() {
+        async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const role = document.getElementById('role').value;
@@ -55,20 +55,30 @@
                 return;
             }
 
-            if (email === 'admin@cabflow.com' && password === '123456' && role === 'admin') {
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Admin' }));
-                window.location.href = 'admin.html';
-            } else if (email === 'vendor@cabflow.com' && password === '123456' && role === 'vendor') {
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'ABC Travels' }));
-                window.location.href = 'vendor.html';
-            } else if (email === 'driver@cabflow.com' && password === '123456' && role === 'driver') {
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Rahul' }));
-                window.location.href = 'driver.html';
-            } else if (email === 'employee@cabflow.com' && password === '123456' && role === 'employee') {
-                localStorage.setItem('currentUser', JSON.stringify({ email: email, role: role, name: 'Kunal' }));
-                window.location.href = 'employee.html';
-            } else {
-                message.innerText = 'Invalid email, password, or role.';
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+                
+                const data = await response.json();
+
+                if (data.success) {
+                    // Save user without password
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    
+                    // Redirect based on role
+                    if (data.user.role === 'admin') window.location.href = 'admin.html';
+                    else if (data.user.role === 'vendor') window.location.href = 'vendor.html';
+                    else if (data.user.role === 'driver') window.location.href = 'driver.html';
+                    else if (data.user.role === 'employee') window.location.href = 'employee.html';
+                } else {
+                    message.innerText = data.error || 'Login failed.';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                message.innerText = 'Unable to connect to the server.';
             }
         }
     </script>

@@ -1,14 +1,6 @@
 // Initialize default data if not exists
 function initData() {
-    if (!localStorage.getItem('users')) {
-        const users = [
-            { email: 'admin@cabflow.com', password: '123456', role: 'admin', name: 'Admin' },
-            { email: 'vendor@cabflow.com', password: '123456', role: 'vendor', name: 'ABC Travels' },
-            { email: 'driver@cabflow.com', password: '123456', role: 'driver', name: 'Rahul' },
-            { email: 'employee@cabflow.com', password: '123456', role: 'employee', name: 'Kunal' }
-        ];
-        localStorage.setItem('users', JSON.stringify(users));
-    }
+    // Users data is now handled securely by the backend
     if (!localStorage.getItem('contracts')) {
         localStorage.setItem('contracts', JSON.stringify([]));
     }
