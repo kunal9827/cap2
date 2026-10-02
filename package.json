@@ -7,6 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "start": "node backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +21,10 @@
   "bugs": {
     "url": "https://github.com/kunal9827/cap2/issues"
   },
-  "homepage": "https://github.com/kunal9827/cap2#readme"
+  "homepage": "https://github.com/kunal9827/cap2#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
 }
