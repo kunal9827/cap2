@@ -2,6 +2,7 @@ require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const path = require('path');
 
 const connectDB = require('./config/db'); // Import database connection function
 const User = require('./models/User'); // Import the Mongoose User Model
@@ -9,6 +10,9 @@ const User = require('./models/User'); // Import the Mongoose User Model
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve the frontend static files (HTML, CSS, JS) directly from the server
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Initialize database with demo accounts if empty
 const initDB = async () => {
@@ -42,28 +46,22 @@ app.post('/api/login', async (req, res) => {
     try {
         const { email, password, role } = req.body;
 
-        // Validation for missing fields
         if (!email || !password || !role) {
             return res.status(400).json({ success: false, error: 'Please provide email, password, and role.' });
         }
 
-        // Find user by email and role in MongoDB
         const user = await User.findOne({ email, role });
 
         if (!user) {
-            // Invalid email or role mismatch
             return res.status(401).json({ success: false, error: 'Invalid email, password, or role.' });
         }
 
-        // Verify password using bcrypt
         const isMatch = await bcrypt.compare(password, user.passwordHash);
 
         if (!isMatch) {
-            // Invalid password
             return res.status(401).json({ success: false, error: 'Invalid email, password, or role.' });
         }
 
-        // Success: Return user info WITHOUT the password hash
         res.json({
             success: true,
             user: {
@@ -81,10 +79,8 @@ app.post('/api/login', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
-    // 1. Connect to MongoDB first
     await connectDB();
-    // 2. Initialize Demo Users
     await initDB();
     
-    console.log(`🚀 CabFlow authentication backend running on http://localhost:${PORT}`);
+    console.log(`🚀 CabFlow running! Open your browser to: http://localhost:${PORT}`);
 });
