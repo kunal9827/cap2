@@ -58,9 +58,20 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                        <h2 style="margin: 0; font-size: 18px;">Recent Bookings</h2>
-                        <input type="text" id="searchBookings" placeholder="🔍 Search employee or status..." onkeyup="filterBookings()" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #cbd5e1; width: 250px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-main);">Recent Bookings</h2>
+                            <span style="font-size: 13px; color: var(--text-muted);">Search and monitor employee bookings</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="searchBookings" placeholder="Search employee, pickup, or status..." onkeyup="handleSearchKey(event)" style="padding: 9px 14px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); background: #ffffff; width: 260px; font-size: 14px; outline: none;">
+                            <button type="button" class="btn-primary btn-sm" onclick="filterBookings()" style="padding: 9px 16px;">
+                                🔍 Search
+                            </button>
+                            <button type="button" class="btn-secondary btn-sm" onclick="clearSearch()" style="padding: 9px 14px;">
+                                Clear
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="table-responsive">
@@ -180,16 +191,78 @@
 
             const tbody = document.getElementById('bookingsTableBody');
             tbody.innerHTML = '';
+            
+            if (bookings.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="emptyBookingsRow">
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">📋</div>
+                            <div style="font-weight: 600; color: var(--text-main);">No bookings recorded yet</div>
+                            <div style="font-size: 13px;">New employee reservations will appear here.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             bookings.forEach(b => {
                 const tr = document.createElement('tr');
+                tr.className = 'booking-row';
                 tr.innerHTML = `
-                    <td>${b.employeeName}</td>
-                    <td>${b.pickup}</td>
-                    <td>${b.time}</td>
-                    <td>${getStatusBadge(b.status)}</td>
+                    <td><strong>${b.employeeName || 'N/A'}</strong></td>
+                    <td>${b.pickup || 'N/A'}</td>
+                    <td>${b.time || 'N/A'}</td>
+                    <td>${getStatusBadge(b.status || 'Pending')}</td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function handleSearchKey(event) {
+            if (event.key === 'Enter') {
+                filterBookings();
+            } else if (document.getElementById('searchBookings').value === '') {
+                filterBookings();
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchBookings').value = '';
+            filterBookings();
+        }
+
+        function filterBookings() {
+            const input = document.getElementById('searchBookings').value.toLowerCase().trim();
+            const tbody = document.getElementById('bookingsTableBody');
+            const rows = tbody.querySelectorAll('tr.booking-row');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const matches = text.includes(input);
+                row.style.display = matches ? '' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            let noResultRow = document.getElementById('noSearchResultRow');
+            if (visibleCount === 0 && rows.length > 0) {
+                if (!noResultRow) {
+                    noResultRow = document.createElement('tr');
+                    noResultRow.id = 'noSearchResultRow';
+                    noResultRow.innerHTML = `
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                            <div style="font-size: 24px; margin-bottom: 6px;">🔍</div>
+                            <div style="font-weight: 600; color: var(--text-main);">No matching bookings found</div>
+                            <div style="font-size: 13px;">Try searching for another employee name, pickup location, or status.</div>
+                        </td>
+                    `;
+                    tbody.appendChild(noResultRow);
+                } else {
+                    noResultRow.style.display = '';
+                }
+            } else if (noResultRow) {
+                noResultRow.style.display = 'none';
+            }
         }
 
         function loadContracts() {
@@ -207,17 +280,6 @@
                 `;
                 tbody.appendChild(tr);
             });
-        }
-
-        function filterBookings() {
-            const input = document.getElementById('searchBookings').value.toLowerCase();
-            const tbody = document.getElementById('bookingsTableBody');
-            const rows = tbody.getElementsByTagName('tr');
-            
-            for (let i = 0; i < rows.length; i++) {
-                const text = rows[i].innerText.toLowerCase();
-                rows[i].style.display = text.includes(input) ? '' : 'none';
-            }
         }
 
         function createContract() {
