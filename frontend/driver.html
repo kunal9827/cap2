@@ -41,12 +41,30 @@
         </div>
     </div>
 
+    <!-- TRACKING MODAL -->
+    <div id="trackingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTracking()">&times;</span>
+            <h2 id="trackTitle" style="margin-top:0;">Live Ride Tracking</h2>
+            <div id="outstationBadgeContainer" style="margin-bottom: 15px;"></div>
+            
+            <div class="track-map-mock">
+                <div class="track-route" id="trackRoute">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            
+            <div class="track-details-grid" id="trackDetails">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
     <script src="js/script.js"></script>
     <script>
         const user = checkAuth('driver');
         document.getElementById('headerUserName').innerText = user.name;
 
-        // Mobile logout display
         if (window.innerWidth <= 768) {
             document.querySelector('.show-mobile-only').style.display = 'block';
         }
@@ -64,25 +82,53 @@
                     const tripCard = document.createElement('div');
                     tripCard.className = 'trip-card';
                     
-                    let actionButton = '';
-
+                    let actionButtons = '';
+                    
+                    // Buttons based on status
                     if (booking.status === 'Confirmed' || booking.status === 'Assigned') {
-                        actionButton = `<button class="btn-primary" onclick="startTrip(${index})" style="width:100%;">Start Trip</button>`;
+                        actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="margin-right: 10px; margin-bottom: 5px;">Start Trip</button>`;
+                        actionButtons += `<button class="btn-danger" onclick="cancelRide(${index})" style="margin-bottom: 5px;">Cancel Ride</button>`;
                     } else if (booking.status === 'Trip Started') {
-                        actionButton = `<button class="btn-primary" onclick="completeTrip(${index})" style="width:100%; background-color:#16a34a;">Complete Trip</button>`;
+                        actionButtons += `<button class="btn-primary" onclick="completeTrip(${index})" style="background-color:#16a34a; margin-right: 10px; margin-bottom: 5px;">Complete Trip</button>`;
+                        actionButtons += `<button class="btn-secondary" onclick="trackCab(${index})" style="margin-bottom: 5px;">Live Tracking</button>`;
+                    } else if (booking.status === 'Completed' || booking.status === 'Cancelled') {
+                        actionButtons += `<button class="btn-secondary" onclick="trackCab(${index})" style="margin-bottom: 5px;">View Route</button>`;
+                    }
+
+                    // Outstation Badge
+                    let outstationHtml = '';
+                    if (booking.type === 'Outstation') {
+                        outstationHtml = `<span class="badge badge-outstation" style="margin-right: 10px;">🚗 Outstation</span>`;
                     }
 
                     tripCard.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
-                            <h3 style="margin:0;">Time: ${booking.time || 'N/A'}</h3>
+                            <h3 style="margin:0;">
+                                ${outstationHtml}
+                                Time: ${booking.time || 'N/A'}
+                            </h3>
                             ${getStatusBadge(booking.status)}
                         </div>
-                        <p><strong>Passenger:</strong> ${booking.employeeName}</p>
-                        <p><strong>Pickup:</strong> ${booking.pickup}</p>
-                        <p><strong>Drop:</strong> ${booking.drop}</p>
-                        <p><strong>Vehicle:</strong> ${booking.cab}</p>
-                        <div style="margin-top: 15px;">
-                            ${actionButton}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <div>
+                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Passenger</p>
+                                <p style="margin: 0; font-weight: 500;">${booking.employeeName}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Vehicle</p>
+                                <p style="margin: 0; font-weight: 500;">${booking.cab}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Pickup</p>
+                                <p style="margin: 0; font-weight: 500;">${booking.pickup}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Drop</p>
+                                <p style="margin: 0; font-weight: 500;">${booking.drop}</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                            ${actionButtons}
                         </div>
                     `;
                     container.appendChild(tripCard);
@@ -109,6 +155,91 @@
                 bookings[index].status = 'Completed';
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 loadTrips();
+            }
+        }
+
+        function cancelRide(index) {
+            if (confirm("Are you sure you want to cancel this ride?")) {
+                const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+                if (bookings[index]) {
+                    bookings[index].status = 'Cancelled';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    loadTrips();
+                }
+            }
+        }
+
+        function trackCab(index) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const booking = bookings[index];
+            if (!booking) return;
+
+            document.getElementById('trackingModal').style.display = 'block';
+            
+            const badgeContainer = document.getElementById('outstationBadgeContainer');
+            if (booking.type === 'Outstation') {
+                badgeContainer.innerHTML = `<span class="badge badge-outstation">🚗 Outstation Trip</span>`;
+            } else {
+                badgeContainer.innerHTML = '';
+            }
+
+            // Mock Route Rendering
+            let routes = booking.route ? booking.route.split(' -> ') : [booking.pickup, booking.drop];
+            let routeHtml = '';
+            
+            routes.forEach((point, i) => {
+                let statusClass = '';
+                if (booking.status === 'Completed') statusClass = 'completed';
+                else if (booking.status === 'Trip Started' && i === routes.length - 2) statusClass = 'current'; // Just a mock current pos
+                else if (i === 0) statusClass = 'completed'; // start is usually completed if on the way
+
+                routeHtml += `
+                    <div class="route-stop ${statusClass}">
+                        <h4>${point}</h4>
+                        <p>${i === 0 ? 'Start' : (i === routes.length - 1 ? 'Destination' : 'Waypoint')}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('trackRoute').innerHTML = routeHtml;
+
+            // Details Rendering
+            document.getElementById('trackDetails').innerHTML = `
+                <div class="detail-item">
+                    <label>Cab Start Time</label>
+                    <span>${booking.startTime || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Pickup ETA</label>
+                    <span>${booking.pickupTime || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Current Location</label>
+                    <span>${booking.currentLocation || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Destination ETA</label>
+                    <span>${booking.eta || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Ride Status</label>
+                    <span>${booking.status}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Driver / Cab</label>
+                    <span>${booking.driver} / ${booking.cab}</span>
+                </div>
+            `;
+        }
+
+        function closeTracking() {
+            document.getElementById('trackingModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('trackingModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
             }
         }
 
