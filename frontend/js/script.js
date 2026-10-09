@@ -32,6 +32,43 @@ function initData() {
         localStorage.setItem('bookings', JSON.stringify(bookings));
     }
 }
+
+// Theme Management (Dark Mode)
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeToggleButtons(savedTheme);
+}
+
+function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeToggleButtons(newTheme);
+}
+
+function updateThemeToggleButtons(theme) {
+    const toggleBtns = document.querySelectorAll('.theme-toggle-btn');
+    toggleBtns.forEach(btn => {
+        if (theme === 'dark') {
+            btn.innerHTML = '☀️ <span class="theme-text">Light</span>';
+            btn.setAttribute('title', 'Switch to Light Mode');
+            btn.setAttribute('aria-label', 'Switch to Light Mode');
+        } else {
+            btn.innerHTML = '🌙 <span class="theme-text">Dark</span>';
+            btn.setAttribute('title', 'Switch to Dark Mode');
+            btn.setAttribute('aria-label', 'Switch to Dark Mode');
+        }
+    });
+}
+
+// Initialize theme immediately and when DOM is loaded
+initTheme();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTheme);
+}
+
 initData();
 
 function logout() {

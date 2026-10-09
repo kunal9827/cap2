@@ -6,8 +6,11 @@
     <title>CabFlow - Login</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8fafc;">
-    <div class="login-container" style="margin: 0; width: 100%;">
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: var(--bg-color);">
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <button type="button" class="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle Dark/Light Mode">🌙 <span class="theme-text">Dark</span></button>
+    </div>
+    <div class="login-container" style="margin: 0; width: 100%; position: relative;">
         <h1 style="margin-bottom: 5px;">CabFlow 🚖</h1>
         <p>Corporate Cab Management</p>
         
