@@ -53,9 +53,9 @@
                             <div class="support-text">Active drivers</div>
                         </div>
                         <div class="card">
-                            <h3>Pending Bookings</h3>
-                            <p>4</p>
-                            <div class="support-text">Awaiting action</div>
+                            <h3>Active & Pending Trips</h3>
+                            <p id="pendingBookingsCount" style="color: var(--primary-color);">0</p>
+                            <div class="support-text">In fleet operation</div>
                         </div>
                     </div>
 
@@ -172,8 +172,16 @@
                 }
             });
             
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const activeTrips = bookings.filter(b => {
+                const s = (b.status || '').toLowerCase();
+                return s.includes('transit') || s.includes('assign') || s.includes('request');
+            }).length;
+
             document.getElementById('totalCabsCount').innerText = total;
             document.getElementById('availableCabsCount').innerText = available;
+            const pendingEl = document.getElementById('pendingBookingsCount');
+            if (pendingEl) pendingEl.innerText = activeTrips;
         }
 
         function addCab() {

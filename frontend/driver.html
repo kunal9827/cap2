@@ -62,43 +62,45 @@
             bookings.forEach((booking, index) => {
                 if (booking.driver === user.name) {
                     hasTrips = true;
-                    const tripCard = document.createElement('div');
-                    tripCard.className = 'trip-card';
+                    const tripWrapper = document.createElement('div');
+                    tripWrapper.style.marginBottom = '24px';
                     
                     let actionButton = '';
 
-                    if (booking.status === 'Confirmed' || booking.status === 'Assigned') {
-                        actionButton = `<button class="btn-primary" onclick="startTrip(${index})" style="width:100%;">Start Trip</button>`;
-                    } else if (booking.status === 'Trip Started') {
-                        actionButton = `<button class="btn-primary" onclick="completeTrip(${index})" style="width:100%; background-color:#16a34a;">Complete Trip</button>`;
+                    const s = (booking.status || '').toLowerCase();
+                    if (s.includes('assign') || s.includes('confirm')) {
+                        actionButton = `<button class="btn-primary" onclick="startTrip(${index})" style="width:100%; padding: 12px; font-size: 15px;">🚗 Start Trip (Passenger Picked Up)</button>`;
+                    } else if (s.includes('transit') || s.includes('start')) {
+                        actionButton = `<button class="btn-primary" onclick="completeTrip(${index})" style="width:100%; background-color: var(--success-color); padding: 12px; font-size: 15px;">🏁 Complete Trip (Passenger Dropped)</button>`;
+                    } else if (s.includes('complete')) {
+                        actionButton = `<div style="text-align: center; color: var(--success-color); font-weight: 700; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: var(--border-radius-md); border: 1px solid rgba(16, 185, 129, 0.3);">✅ Trip Completed Successfully</div>`;
                     }
 
-                    tripCard.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
-                            <h3 style="margin:0;">Time: ${booking.time || 'N/A'}</h3>
-                            ${getStatusBadge(booking.status)}
-                        </div>
-                        <p><strong>Passenger:</strong> ${booking.employeeName}</p>
-                        <p><strong>Pickup:</strong> ${booking.pickup}</p>
-                        <p><strong>Drop:</strong> ${booking.drop}</p>
-                        <p><strong>Vehicle:</strong> ${booking.cab}</p>
-                        <div style="margin-top: 15px;">
+                    tripWrapper.innerHTML = `
+                        ${renderLiveRideTracker(booking)}
+                        <div style="margin-top: -12px;">
                             ${actionButton}
                         </div>
                     `;
-                    container.appendChild(tripCard);
+                    container.appendChild(tripWrapper);
                 }
             });
 
             if (!hasTrips) {
-                container.innerHTML = '<div class="trip-card"><p>No trips assigned for today. Have a rest!</p></div>';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛣️</div>
+                        <h3 class="empty-state-title">No trips assigned for today</h3>
+                        <p class="empty-state-desc">You are currently on standby. Trips assigned to you will appear here live.</p>
+                    </div>
+                `;
             }
         }
 
         function startTrip(index) {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             if (bookings[index]) {
-                bookings[index].status = 'Trip Started';
+                bookings[index].status = 'In Transit';
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 loadTrips();
             }
