@@ -53,6 +53,11 @@
                             <div class="support-text">Currently in fleet</div>
                         </div>
                         <div class="card">
+                            <h3>Live Rides</h3>
+                            <p id="liveRidesCount" style="color: var(--primary-color);">0</p>
+                            <div class="support-text">Currently in transit</div>
+                        </div>
+                        <div class="card">
                             <h3>Today's Bookings</h3>
                             <p id="todayBookingsCount">0</p>
                             <div class="support-text">Pending and completed</div>
@@ -80,9 +85,10 @@
                             <thead>
                                 <tr>
                                     <th>Employee</th>
-                                    <th>Pickup</th>
+                                    <th>Pickup ➔ Drop</th>
                                     <th>Time</th>
                                     <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="bookingsTableBody">
@@ -187,7 +193,13 @@
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
             
+            const liveRides = bookings.filter(b => {
+                const s = (b.status || '').toLowerCase();
+                return s.includes('transit') || s.includes('start');
+            }).length;
+
             document.getElementById('activeCabsCount').innerText = cabs.length;
+            document.getElementById('liveRidesCount').innerText = liveRides;
             document.getElementById('todayBookingsCount').innerText = bookings.length;
 
             const tbody = document.getElementById('bookingsTableBody');
@@ -196,7 +208,7 @@
             if (bookings.length === 0) {
                 tbody.innerHTML = `
                     <tr id="emptyBookingsRow">
-                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
                             <div style="font-size: 24px; margin-bottom: 6px;">📋</div>
                             <div style="font-weight: 600; color: var(--text-main);">No bookings recorded yet</div>
                             <div style="font-size: 13px;">New employee reservations will appear here.</div>
@@ -211,9 +223,14 @@
                 tr.className = 'booking-row';
                 tr.innerHTML = `
                     <td><strong>${b.employeeName || 'N/A'}</strong></td>
-                    <td>${b.pickup || 'N/A'}</td>
+                    <td>${b.pickup || 'N/A'} ➔ ${b.drop || 'Cyber Hub'}</td>
                     <td>${b.time || 'N/A'}</td>
-                    <td>${getStatusBadge(b.status || 'Pending')}</td>
+                    <td>${getStatusBadge(b.status || 'Requested')}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="openLiveTrackerModal(${b.id})" style="padding: 5px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                            📍 Track
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -251,7 +268,7 @@
                     noResultRow = document.createElement('tr');
                     noResultRow.id = 'noSearchResultRow';
                     noResultRow.innerHTML = `
-                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
                             <div style="font-size: 24px; margin-bottom: 6px;">🔍</div>
                             <div style="font-weight: 600; color: var(--text-main);">No matching bookings found</div>
                             <div style="font-size: 13px;">Try searching for another employee name, pickup location, or status.</div>
@@ -310,8 +327,44 @@
             loadContracts();
         }
 
+        // Live Ride Status Modal
+        function openLiveTrackerModal(id) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const booking = bookings.find(b => b.id === id);
+            if (!booking) return;
+
+            const modal = document.getElementById('trackerModal');
+            const body = document.getElementById('trackerModalBody');
+            body.innerHTML = renderLiveRideTracker(booking);
+            modal.classList.add('active');
+        }
+
+        function closeTrackerModal() {
+            const modal = document.getElementById('trackerModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        // Close modal on background click
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('trackerModal');
+            if (e.target === modal) closeTrackerModal();
+        });
+
         // Init
         loadDashboardData();
     </script>
+
+    <!-- LIVE RIDE TRACKER MODAL -->
+    <div id="trackerModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Live Ride Tracking Details</h3>
+                <button type="button" class="modal-close" onclick="closeTrackerModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="trackerModalBody">
+                <!-- Rendered dynamically via renderLiveRideTracker -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>

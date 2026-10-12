@@ -145,16 +145,19 @@
                         upcoming++;
                         if (!firstUpcomingFound) {
                             upcomingContainer.innerHTML = `
-                                <div class="trip-card">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:10px;">
-                                        <h3 style="margin:0; color:#3b82f6;">${booking.date} at ${booking.time}</h3>
-                                        ${getStatusBadge(booking.status)}
+                                <div>
+                                    ${renderLiveRideTracker(booking)}
+                                    <div style="display: flex; gap: 10px; margin-top: -10px; margin-bottom: 20px;">
+                                        ${booking.status !== 'In Transit' && booking.status !== 'Trip Started' ? `
+                                            <button class="btn btn-danger btn-sm" onclick="cancelTrip(${booking.id})" style="padding: 8px 16px;">
+                                                Cancel Trip
+                                            </button>
+                                        ` : `
+                                            <div style="font-size: 13px; color: var(--primary-color); font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 6px 0;">
+                                                <span>🚗 Ride is currently in transit. Enjoy your journey!</span>
+                                            </div>
+                                        `}
                                     </div>
-                                    <p><strong>Pickup:</strong> ${booking.pickup}</p>
-                                    <p><strong>Drop:</strong> ${booking.drop}</p>
-                                    <p><strong>Driver:</strong> ${booking.driver || 'Pending Assignment'}</p>
-                                    <p><strong>Vehicle:</strong> ${booking.cab || 'Pending Assignment'}</p>
-                                    <button class="btn-danger" onclick="cancelTrip(${booking.id})" style="margin-top:15px; width:100%;">Cancel Trip</button>
                                 </div>
                             `;
                             firstUpcomingFound = true;
@@ -216,7 +219,7 @@
                 time: pickupTime,
                 pickup: pickupLocation,
                 drop: dropLocation,
-                status: 'Confirmed',
+                status: 'Requested',
                 cab: 'Pending',
                 driver: 'Pending'
             };
@@ -225,7 +228,8 @@
             const cabs = JSON.parse(localStorage.getItem('cabs')) || [];
             if (cabs.length > 0) {
                 newBooking.cab = cabs[0].id;
-                newBooking.driver = 'Rahul'; // Hardcoded for demo
+                newBooking.driver = 'Rahul'; // Demo driver
+                newBooking.status = 'Assigned';
             }
 
             bookings.push(newBooking);

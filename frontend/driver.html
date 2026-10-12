@@ -80,71 +80,49 @@
             bookings.forEach((booking, index) => {
                 if (booking.driver === user.name) {
                     hasTrips = true;
-                    const tripCard = document.createElement('div');
-                    tripCard.className = 'trip-card';
+                    const tripWrapper = document.createElement('div');
+                    tripWrapper.style.marginBottom = '24px';
                     
                     let actionButtons = '';
-                    
-                    // Buttons based on status
-                    if (booking.status === 'Confirmed' || booking.status === 'Assigned') {
-                        actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="margin-right: 10px; margin-bottom: 5px;">Start Trip</button>`;
-                        actionButtons += `<button class="btn-danger" onclick="cancelRide(${index})" style="margin-bottom: 5px;">Cancel Ride</button>`;
-                    } else if (booking.status === 'Trip Started') {
-                        actionButtons += `<button class="btn-primary" onclick="completeTrip(${index})" style="background-color:#16a34a; margin-right: 10px; margin-bottom: 5px;">Complete Trip</button>`;
-                        actionButtons += `<button class="btn-secondary" onclick="trackCab(${index})" style="margin-bottom: 5px;">Live Tracking</button>`;
-                    } else if (booking.status === 'Completed' || booking.status === 'Cancelled') {
-                        actionButtons += `<button class="btn-secondary" onclick="trackCab(${index})" style="margin-bottom: 5px;">View Route</button>`;
+                    const s = (booking.status || '').toLowerCase();
+                    if (s.includes('assign') || s.includes('confirm')) {
+                        actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🚗 Start Trip (Picked Up)</button>`;
+                        actionButtons += `<button class="btn-danger btn-sm" onclick="cancelRide(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Cancel Ride</button>`;
+                    } else if (s.includes('transit') || s.includes('start')) {
+                        actionButtons += `<button class="btn-primary" onclick="completeTrip(${index})" style="background-color: var(--success-color); padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🏁 Complete Trip (Dropped)</button>`;
+                        actionButtons += `<button class="btn-secondary btn-sm" onclick="trackCab(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Live Route Map</button>`;
+                    } else if (s.includes('complete')) {
+                        actionButtons += `<span style="color: var(--success-color); font-weight: 700; margin-right: 12px;">✅ Completed</span>`;
+                        actionButtons += `<button class="btn-secondary btn-sm" onclick="trackCab(${index})" style="padding: 8px 14px; margin-bottom: 5px;">View Route</button>`;
+                    } else if (s.includes('cancel')) {
+                        actionButtons += `<span style="color: var(--danger-color); font-weight: 700;">🚫 Cancelled</span>`;
                     }
 
-                    // Outstation Badge
-                    let outstationHtml = '';
-                    if (booking.type === 'Outstation') {
-                        outstationHtml = `<span class="badge badge-outstation" style="margin-right: 10px;">🚗 Outstation</span>`;
-                    }
-
-                    tripCard.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
-                            <h3 style="margin:0;">
-                                ${outstationHtml}
-                                Time: ${booking.time || 'N/A'}
-                            </h3>
-                            ${getStatusBadge(booking.status)}
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                            <div>
-                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Passenger</p>
-                                <p style="margin: 0; font-weight: 500;">${booking.employeeName}</p>
-                            </div>
-                            <div>
-                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Vehicle</p>
-                                <p style="margin: 0; font-weight: 500;">${booking.cab}</p>
-                            </div>
-                            <div>
-                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Pickup</p>
-                                <p style="margin: 0; font-weight: 500;">${booking.pickup}</p>
-                            </div>
-                            <div>
-                                <p style="font-size: 12px; color: #64748b; margin: 0; text-transform: uppercase;">Drop</p>
-                                <p style="margin: 0; font-weight: 500;">${booking.drop}</p>
-                            </div>
-                        </div>
-                        <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                    tripWrapper.innerHTML = `
+                        ${renderLiveRideTracker(booking)}
+                        <div style="margin-top: -10px; margin-bottom: 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
                             ${actionButtons}
                         </div>
                     `;
-                    container.appendChild(tripCard);
+                    container.appendChild(tripWrapper);
                 }
             });
 
             if (!hasTrips) {
-                container.innerHTML = '<div class="trip-card"><p>No trips assigned for today. Have a rest!</p></div>';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛣️</div>
+                        <h3 class="empty-state-title">No trips assigned for today</h3>
+                        <p class="empty-state-desc">You are currently on standby. Trips assigned to you will appear here live.</p>
+                    </div>
+                `;
             }
         }
 
         function startTrip(index) {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             if (bookings[index]) {
-                bookings[index].status = 'Trip Started';
+                bookings[index].status = 'In Transit';
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 loadTrips();
             }
