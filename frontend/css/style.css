@@ -935,7 +935,7 @@ button, .btn {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-lg);
-    max-width: 650px;
+    max-width: 740px;
     width: 100%;
     box-shadow: var(--shadow-lg);
     overflow: hidden;
@@ -979,3 +979,165 @@ button, .btn {
 .modal-body {
     padding: 24px;
 }
+
+/* ==========================================================================
+   LIVE CAB TRACKING & MAP STYLES
+   ========================================================================== */
+.live-map-wrapper {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    background: #e2e8f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.map-overlay-eta {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(15, 23, 42, 0.9);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-md);
+    z-index: 500;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.map-overlay-cab {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 14px;
+    border-radius: var(--border-radius-md);
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cab-marker-pulsing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.35);
+    animation: car-pulse 2s infinite;
+    border: 2px solid #ffffff;
+}
+
+@keyframes car-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { box-shadow: 0 0 0 14px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.tracker-eta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tracker-driver-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    margin-top: 18px;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.driver-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.driver-avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+.driver-info-meta h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.driver-info-meta p {
+    margin: 3px 0 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.driver-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-arriving {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+[data-theme="dark"] .badge-arriving {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Dark Mode Leaflet Map tiles invert */
+[data-theme="dark"] .live-map-wrapper {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .leaflet-layer,
+[data-theme="dark"] .leaflet-control-zoom-in,
+[data-theme="dark"] .leaflet-control-zoom-out,
+[data-theme="dark"] .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(90%);
+}
+

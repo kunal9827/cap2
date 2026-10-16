@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Driver Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="container">
@@ -43,20 +45,14 @@
     </div>
 
     <!-- TRACKING MODAL -->
-    <div id="trackingModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeTracking()">&times;</span>
-            <h2 id="trackTitle" style="margin-top:0;">Live Ride Tracking</h2>
-            <div id="outstationBadgeContainer" style="margin-bottom: 15px;"></div>
-            
-            <div class="track-map-mock">
-                <div class="track-route" id="trackRoute">
-                    <!-- Populated by JS -->
-                </div>
+    <div id="trackingModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Live Ride Tracking Details</h3>
+                <button type="button" class="modal-close" onclick="closeTracking()">&times;</button>
             </div>
-            
-            <div class="track-details-grid" id="trackDetails">
-                <!-- Populated by JS -->
+            <div class="modal-body" id="trackingModalBody">
+                <!-- Rendered dynamically via renderLiveRideTracker -->
             </div>
         </div>
     </div>
@@ -85,12 +81,15 @@
                     
                     let actionButtons = '';
                     const s = (booking.status || '').toLowerCase();
-                    if (s.includes('assign') || s.includes('confirm')) {
-                        actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🚗 Start Trip (Picked Up)</button>`;
+                    if (s.includes('arriving')) {
+                        actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="background-color: #3b82f6; padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">📍 Start Trip (Passenger Picked Up)</button>`;
                         actionButtons += `<button class="btn-danger btn-sm" onclick="cancelRide(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Cancel Ride</button>`;
-                    } else if (s.includes('transit') || s.includes('start')) {
-                        actionButtons += `<button class="btn-primary" onclick="completeTrip(${index})" style="background-color: var(--success-color); padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🏁 Complete Trip (Dropped)</button>`;
-                        actionButtons += `<button class="btn-secondary btn-sm" onclick="trackCab(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Live Route Map</button>`;
+                    } else if (s.includes('progress') || s.includes('transit') || s.includes('started')) {
+                        actionButtons += `<button class="btn-primary" onclick="completeTrip(${index})" style="background-color: var(--success-color); padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🏁 Complete Trip (Passenger Dropped)</button>`;
+                        actionButtons += `<button class="btn-secondary btn-sm" onclick="trackCab(${index})" style="padding: 10px 16px; margin-bottom: 5px;">🗺️ Route Map</button>`;
+                    } else if (s.includes('assign') || s.includes('confirm') || s.includes('request')) {
+                        actionButtons += `<button class="btn-primary" onclick="setDriverArriving(${index})" style="background-color: #f59e0b; padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">🚗 Driver Arriving (Heading to Pickup)</button>`;
+                        actionButtons += `<button class="btn-danger btn-sm" onclick="cancelRide(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Cancel Ride</button>`;
                     } else if (s.includes('complete')) {
                         actionButtons += `<span style="color: var(--success-color); font-weight: 700; margin-right: 12px;">✅ Completed</span>`;
                         actionButtons += `<button class="btn-secondary btn-sm" onclick="trackCab(${index})" style="padding: 8px 14px; margin-bottom: 5px;">View Route</button>`;
@@ -119,10 +118,19 @@
             }
         }
 
+        function setDriverArriving(index) {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            if (bookings[index]) {
+                bookings[index].status = 'Driver Arriving';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                loadTrips();
+            }
+        }
+
         function startTrip(index) {
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             if (bookings[index]) {
-                bookings[index].status = 'In Transit';
+                bookings[index].status = 'In Progress';
                 localStorage.setItem('bookings', JSON.stringify(bookings));
                 loadTrips();
             }
@@ -153,74 +161,24 @@
             const booking = bookings[index];
             if (!booking) return;
 
-            document.getElementById('trackingModal').style.display = 'block';
-            
-            const badgeContainer = document.getElementById('outstationBadgeContainer');
-            if (booking.type === 'Outstation') {
-                badgeContainer.innerHTML = `<span class="badge badge-outstation">🚗 Outstation Trip</span>`;
-            } else {
-                badgeContainer.innerHTML = '';
-            }
-
-            // Mock Route Rendering
-            let routes = booking.route ? booking.route.split(' -> ') : [booking.pickup, booking.drop];
-            let routeHtml = '';
-            
-            routes.forEach((point, i) => {
-                let statusClass = '';
-                if (booking.status === 'Completed') statusClass = 'completed';
-                else if (booking.status === 'Trip Started' && i === routes.length - 2) statusClass = 'current'; // Just a mock current pos
-                else if (i === 0) statusClass = 'completed'; // start is usually completed if on the way
-
-                routeHtml += `
-                    <div class="route-stop ${statusClass}">
-                        <h4>${point}</h4>
-                        <p>${i === 0 ? 'Start' : (i === routes.length - 1 ? 'Destination' : 'Waypoint')}</p>
-                    </div>
-                `;
-            });
-            document.getElementById('trackRoute').innerHTML = routeHtml;
-
-            // Details Rendering
-            document.getElementById('trackDetails').innerHTML = `
-                <div class="detail-item">
-                    <label>Cab Start Time</label>
-                    <span>${booking.startTime || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <label>Pickup ETA</label>
-                    <span>${booking.pickupTime || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <label>Current Location</label>
-                    <span>${booking.currentLocation || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <label>Destination ETA</label>
-                    <span>${booking.eta || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <label>Ride Status</label>
-                    <span>${booking.status}</span>
-                </div>
-                <div class="detail-item">
-                    <label>Driver / Cab</label>
-                    <span>${booking.driver} / ${booking.cab}</span>
-                </div>
-            `;
+            const modal = document.getElementById('trackingModal');
+            const body = document.getElementById('trackingModalBody');
+            body.innerHTML = renderLiveRideTracker(booking);
+            modal.classList.add('active');
         }
 
         function closeTracking() {
-            document.getElementById('trackingModal').style.display = 'none';
+            const modal = document.getElementById('trackingModal');
+            if (modal) modal.classList.remove('active');
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             const modal = document.getElementById('trackingModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
+            if (event.target === modal) {
+                closeTracking();
             }
-        }
+        });
 
         // Init
         loadTrips();
