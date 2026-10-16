@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Admin Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,6 +16,7 @@
             </div>
             <ul>
                 <li><a href="#" id="link-dashboard" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" id="link-tracking" onclick="showSection('tracking')">📍 Live Cab Tracking</a></li>
                 <li><a href="#" id="link-contracts" onclick="showSection('contracts')">📝 Create Contract</a></li>
                 <li><a href="#" onclick="logout()" class="show-mobile-only" style="display:none;">🚪 Logout</a></li>
             </ul>
@@ -98,6 +101,22 @@
                     </div>
                 </div>
 
+                <div id="trackingSection" class="section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h1 style="margin: 0 0 4px 0;">Fleet Live Cab Tracking</h1>
+                            <p style="color: var(--text-muted); margin: 0; font-size: 14px;">Monitor assigned fleet vehicles, live GPS locations, driver details, and trip lifecycles in real time.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; background: var(--bg-card); padding: 8px 14px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+                            <label for="adminCabSelector" style="font-weight: 600; font-size: 13px; margin: 0; color: var(--text-main);">Select Cab / Trip:</label>
+                            <select id="adminCabSelector" onchange="loadAdminSelectedTracking()" style="padding: 6px 12px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main); font-size: 13px; outline: none; cursor: pointer;"></select>
+                        </div>
+                    </div>
+                    <div id="adminLiveTrackingContainer">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
                 <div id="contractsSection" class="section">
                     <h1>Create Contract</h1>
                     <form id="contractForm">
@@ -172,9 +191,13 @@
         function showSection(section) {
             document.getElementById('dashboardSection').classList.remove('active-section');
             document.getElementById('contractsSection').classList.remove('active-section');
+            const trackingSec = document.getElementById('trackingSection');
+            if (trackingSec) trackingSec.classList.remove('active-section');
             
             document.getElementById('link-dashboard').classList.remove('active');
             document.getElementById('link-contracts').classList.remove('active');
+            const linkTrack = document.getElementById('link-tracking');
+            if (linkTrack) linkTrack.classList.remove('active');
             
             if (window.innerWidth <= 768) toggleSidebar(); // auto close on mobile
             
@@ -182,11 +205,63 @@
                 document.getElementById('dashboardSection').classList.add('active-section');
                 document.getElementById('link-dashboard').classList.add('active');
                 loadDashboardData();
+            } else if (section === 'tracking') {
+                if (trackingSec) trackingSec.classList.add('active-section');
+                if (linkTrack) linkTrack.classList.add('active');
+                loadAdminTrackingView();
             } else {
                 document.getElementById('contractsSection').classList.add('active-section');
                 document.getElementById('link-contracts').classList.add('active');
                 loadContracts();
             }
+        }
+
+        function loadAdminTrackingView() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const selector = document.getElementById('adminCabSelector');
+            const container = document.getElementById('adminLiveTrackingContainer');
+            if (!selector || !container) return;
+
+            const activeBookings = bookings.filter(b => b.status !== 'Cancelled');
+            const prevSelectedVal = selector.value;
+            selector.innerHTML = '';
+
+            if (activeBookings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚖</div>
+                        <h3 class="empty-state-title">No Active Cabs</h3>
+                        <p class="empty-state-desc">There are currently no active cab bookings or trips to track.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            activeBookings.forEach((b) => {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.innerText = `Cab #${b.cab || 'Fleet'} • ${b.employeeName} (${b.status || 'Assigned'})`;
+                selector.appendChild(opt);
+            });
+
+            if (prevSelectedVal && activeBookings.some(b => b.id == prevSelectedVal)) {
+                selector.value = prevSelectedVal;
+            }
+
+            loadAdminSelectedTracking();
+        }
+
+        function loadAdminSelectedTracking() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const selector = document.getElementById('adminCabSelector');
+            const container = document.getElementById('adminLiveTrackingContainer');
+            if (!selector || !container) return;
+
+            const selectedId = parseInt(selector.value, 10);
+            const booking = bookings.find(b => b.id === selectedId) || bookings[0];
+            if (!booking) return;
+
+            container.innerHTML = renderLiveRideTracker(booking);
         }
 
         function loadDashboardData() {
@@ -195,7 +270,7 @@
             
             const liveRides = bookings.filter(b => {
                 const s = (b.status || '').toLowerCase();
-                return s.includes('transit') || s.includes('start');
+                return s.includes('transit') || s.includes('start') || s.includes('arriving') || s.includes('progress');
             }).length;
 
             document.getElementById('activeCabsCount').innerText = cabs.length;

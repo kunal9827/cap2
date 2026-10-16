@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CabFlow - Employee Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,7 +16,8 @@
             </div>
             <ul>
                 <li><a href="#" id="link-dashboard" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
-                <li><a href="#" id="link-bookCab" onclick="showSection('bookCab')">📍 Book a Cab</a></li>
+                <li><a href="#" id="link-liveTracking" onclick="showSection('liveTracking')">📍 Live Cab Tracking</a></li>
+                <li><a href="#" id="link-bookCab" onclick="showSection('bookCab')">🚖 Book a Cab</a></li>
                 <li><a href="#" onclick="logout()" class="show-mobile-only" style="display:none;">🚪 Logout</a></li>
             </ul>
         </div>
@@ -65,6 +68,14 @@
                     <button class="btn-primary" onclick="showSection('bookCab')" style="margin-top: 10px;">Book a New Cab</button>
                 </div>
 
+                <div id="liveTrackingSection" class="section">
+                    <h1>Live Cab Tracking</h1>
+                    <p style="color: var(--text-muted); margin-bottom: 20px;">Track your assigned cab live with real-time GPS positioning, driver information, and estimated arrival times.</p>
+                    <div id="fullLiveTrackerContainer">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
                 <div id="bookCabSection" class="section">
                     <h1>Book a Cab</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Please remember to book at least 9 hours in advance.</p>
@@ -112,9 +123,11 @@
 
         function showSection(section) {
             document.getElementById('dashboardSection').classList.remove('active-section');
+            document.getElementById('liveTrackingSection').classList.remove('active-section');
             document.getElementById('bookCabSection').classList.remove('active-section');
             
             document.getElementById('link-dashboard').classList.remove('active');
+            document.getElementById('link-liveTracking').classList.remove('active');
             document.getElementById('link-bookCab').classList.remove('active');
             
             if (window.innerWidth <= 768) toggleSidebar();
@@ -123,9 +136,39 @@
                 document.getElementById('dashboardSection').classList.add('active-section');
                 document.getElementById('link-dashboard').classList.add('active');
                 loadDashboardData();
+            } else if (section === 'liveTracking') {
+                document.getElementById('liveTrackingSection').classList.add('active-section');
+                document.getElementById('link-liveTracking').classList.add('active');
+                loadLiveTrackingView();
             } else {
                 document.getElementById('bookCabSection').classList.add('active-section');
                 document.getElementById('link-bookCab').classList.add('active');
+            }
+        }
+
+        function loadLiveTrackingView() {
+            const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+            const container = document.getElementById('fullLiveTrackerContainer');
+            if (!container) return;
+
+            // Find current active booking for this user
+            const activeBooking = bookings.find(b => 
+                b.employeeName === user.name && 
+                b.status !== 'Completed' && 
+                b.status !== 'Cancelled'
+            );
+
+            if (activeBooking) {
+                container.innerHTML = renderLiveRideTracker(activeBooking);
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚖</div>
+                        <h3 class="empty-state-title">No Active Cab to Track</h3>
+                        <p class="empty-state-desc">You don't have an active cab journey right now. Book a cab to start tracking your ride live!</p>
+                        <button class="btn btn-primary" onclick="showSection('bookCab')">Book a Cab</button>
+                    </div>
+                `;
             }
         }
 
