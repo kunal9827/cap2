@@ -82,6 +82,7 @@
                     let actionButtons = '';
                     const s = (booking.status || '').toLowerCase();
                     if (s.includes('arriving')) {
+                        actionButtons += `<button class="btn-primary" onclick="notifyPassengerDriverAtSpot(${booking.id}, '${(booking.pickupSpotName || 'Pickup Bay').replace(/'/g, "\\'")}')" style="background-color: #8b5cf6; padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">📢 I've Arrived at ${booking.pickupSpotName ? booking.pickupSpotName.split('-')[0].trim() : 'Pickup Bay'}</button>`;
                         actionButtons += `<button class="btn-primary" onclick="startTrip(${index})" style="background-color: #3b82f6; padding: 10px 16px; margin-right: 10px; margin-bottom: 5px;">📍 Start Trip (Passenger Picked Up)</button>`;
                         actionButtons += `<button class="btn-danger btn-sm" onclick="cancelRide(${index})" style="padding: 10px 16px; margin-bottom: 5px;">Cancel Ride</button>`;
                     } else if (s.includes('progress') || s.includes('transit') || s.includes('started')) {

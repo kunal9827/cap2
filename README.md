@@ -22,8 +22,33 @@ I kept the stack completely vanilla and lightweight so it's easy to run, underst
 CabFlow/
 ├── index.html         # Login page with role selection & demo accounts
 ├── admin.html         # Admin dashboard and contract creation
+├── employee.html      # Employee dashboard, cab booking, and smart pickup point selector
+├── driver.html        # Driver dashboard, trip execution, and passenger photo viewer
+├── vendor.html        # Fleet and vendor vehicle management
 ├── css/
 │   └── style.css      # Styling for layouts, tables, cards, and forms
 ├── js/
-│   └── script.js      # LocalStorage initialization and helper functions
+│   └── script.js      # LocalStorage initialization, Leaflet live maps, and Smart Pickup logic
 └── README.md          # Project documentation
+```
+
+---
+
+## 🎯 Smart Pickup Points & Coordination System
+Passengers and drivers often struggle to find each other at crowded hubs like malls, colleges, hospitals, and busy markets. CabFlow solves this before the ride even begins:
+
+1. **Nearby Smart Pickup Spot Recommendations**:
+   - Curated designated pickup bays, entry porches, and taxi stands for high-density hubs (DLF CyberHub, Ambience Mall, Medanta Hospital, Amity University, Sector 29 Market, Delhi Airport T3, and Sector 57).
+   - Recommends the optimal bay with walking time and distance.
+2. **Recognizable Landmarks & Step-by-Step Walking Directions**:
+   - Clear visual landmark descriptions (e.g., *"Beside Starbucks outdoor seating, Pillar D-3 under yellow CabFlow canopy"*).
+   - Step-by-step walking guides showing passengers how to navigate from building exits to the sheltered curb.
+3. **Passenger Pickup Photo Sharing with Driver**:
+   - Passengers can upload a photo of where they are waiting or select quick landmark photo presets.
+   - Drivers can view the photo directly on their dashboard and open a high-res lightbox modal to spot the passenger immediately.
+4. **Road Accessibility & Inaccessibility Warning**:
+   - Automatically detects if the passenger drops a pin inside pedestrian plazas, internal courtyards, or > 50m away from drivable roads.
+   - Displays a prominent amber/red alert: *"⚠️ Selected pin is ~110m inside a pedestrian zone. Cabs cannot legally enter here."*
+   - Includes a 1-click **"✨ Snap to Recommended Pickup Bay"** button to ensure legal and swift pickups.
+5. **Real-Time Driver Arrival Alerts**:
+   - Drivers can click *"📢 I've Arrived at Pickup Bay"* to immediately notify the passenger in real time.

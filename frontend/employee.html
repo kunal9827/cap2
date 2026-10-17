@@ -90,8 +90,12 @@
                         </div>
                         <div class="form-group">
                             <label>Pickup Location</label>
-                            <input type="text" id="pickupLocation" required placeholder="Enter building/sector">
+                            <input type="text" id="pickupLocation" required placeholder="Enter building/sector" oninput="onPickupLocationChanged(this.value)">
                         </div>
+
+                        <!-- 🎯 SMART PICKUP POINT ASSISTANT CONTAINER -->
+                        <div id="smartPickupWidgetContainer"></div>
+
                         <div class="form-group">
                             <label>Drop Location</label>
                             <input type="text" id="dropLocation" required placeholder="Enter destination">
@@ -143,6 +147,7 @@
             } else {
                 document.getElementById('bookCabSection').classList.add('active-section');
                 document.getElementById('link-bookCab').classList.add('active');
+                initSmartPickupWidget();
             }
         }
 
@@ -254,6 +259,20 @@
                 return;
             }
 
+            // Road Accessibility Check & Warning
+            if (widgetRoadStatus && !widgetRoadStatus.isAccessible) {
+                const switchRec = confirm(
+                    `⚠️ Road Accessibility Warning!\n\nYour selected pickup spot is located inside a pedestrian/restricted off-road zone (~${widgetRoadStatus.distanceToRoad}m from drivable road).\n\nCabs cannot reach here. Would you like to switch to the recommended curbside bay:\n"${widgetRoadStatus.recommendedSpot.name}"\n(Save time and ensure legal cab pickup)?`
+                );
+                if (switchRec) {
+                    snapToRecommendedSpot();
+                }
+            }
+
+            const chosenSpot = widgetSelectedSpot;
+            const chosenRoad = widgetRoadStatus;
+            const photoNoteVal = document.getElementById('pickupPhotoNote') ? document.getElementById('pickupPhotoNote').value.trim() : widgetCurrentPhotoNote;
+
             const bookings = JSON.parse(localStorage.getItem('bookings')) || [];
             const newBooking = {
                 id: Date.now(),
@@ -264,7 +283,16 @@
                 drop: dropLocation,
                 status: 'Requested',
                 cab: 'Pending',
-                driver: 'Pending'
+                driver: 'Pending',
+                // Smart Pickup metadata
+                pickupSpotName: chosenSpot ? chosenSpot.name : (pickupLocation + ' Curbside Bay'),
+                pickupLandmark: chosenSpot ? chosenSpot.landmark : 'Main road curbside entrance',
+                walkingDirections: chosenSpot ? chosenSpot.steps : ['Exit building', 'Wait at the main curbside road'],
+                walkingDistance: chosenSpot ? `${chosenSpot.walkingDistance} (~${chosenSpot.walkingTime})` : '30m (1 min walk)',
+                roadAccessible: chosenRoad ? chosenRoad.isAccessible : true,
+                distanceToRoad: chosenRoad ? chosenRoad.distanceToRoad : 8,
+                pickupPhoto: widgetCurrentPhoto || (widgetCurrentHub ? SMART_PICKUP_PRESET_PHOTOS[widgetCurrentHub.presetKey || 'cyberhub'] : ''),
+                pickupPhotoNote: photoNoteVal || (chosenSpot ? `Waiting at ${chosenSpot.name}` : 'Waiting at designated pickup bay')
             };
             
             // Assign first available cab for demo purposes
@@ -278,12 +306,28 @@
             bookings.push(newBooking);
             localStorage.setItem('bookings', JSON.stringify(bookings));
 
-            messageEl.innerText = 'Booking successful! Your trip is confirmed.';
+            messageEl.innerText = 'Booking successful! Your trip is confirmed with designated Smart Pickup Point.';
             messageEl.className = 'message success';
             document.getElementById('bookCabForm').reset();
             
             loadDashboardData();
         }
+
+        // Set default date & time (tomorrow at 09:00 AM) to easily pass the 9-hour validation rule
+        function prefillBookingDefaults() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            const dateInput = document.getElementById('travelDate');
+            const timeInput = document.getElementById('pickupTime');
+            if (dateInput && !dateInput.value) dateInput.value = dateStr;
+            if (timeInput && !timeInput.value) timeInput.value = '09:00';
+            const pickupInput = document.getElementById('pickupLocation');
+            if (pickupInput && !pickupInput.value) pickupInput.value = 'DLF CyberHub - Gate 2 - Dedicated Cab Pickup Bay';
+            const dropInput = document.getElementById('dropLocation');
+            if (dropInput && !dropInput.value) dropInput.value = 'Indira Gandhi International Airport (T3)';
+        }
+        prefillBookingDefaults();
 
         // Init
         loadDashboardData();
